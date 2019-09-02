@@ -15,6 +15,7 @@ end
 
 ImpedanceRecorder = zeros(1,Number_of_points);
 PhaseRecorder = zeros(1,Number_of_points);
+TimeRecorder = zeros(1,Number_of_points);
 Frequency_Points = linspace(Min,Max,Number_of_points);
 
 % Find a GPIB object.
@@ -56,14 +57,17 @@ hold();
 fopen(obj1);
 
 Measurement_count = 1;
+tstart = tic;
 
 while 1
 % Communicating with instrument object, obj1.
 
     try
+        
         data = query(obj1, 'OUTPDATA?');
 
         AtoRratio = ProcessRAW(data,Number_of_points);
+        time = toc(tstart);
 
         mag = abs(AtoRratio);
         pha = angle(AtoRratio);
@@ -74,6 +78,7 @@ while 1
         set(config_pha,'XLim',[Min,Max])
         drawnow
 
+        TimeRecorder(Measurement_count,:) = time;
         ImpedanceRecorder(Measurement_count,:) = mag;
         PhaseRecorder(Measurement_count,:) = pha;
 
@@ -87,7 +92,7 @@ while 1
         RecorderArray= struct('Center',Center,'Span',Span,'Min',Min,'Max', ...
         Max,'Number_of_points',Number_of_points,'Frequency_Points',Frequency_Points,...
         'PhaseRecorder',PhaseRecorder,'ImpedanceRecorder',ImpedanceRecorder,...
-        'Measurement_count',Measurement_count);
+        'Measurement_count',Measurement_count - 1,'TimeRecorder',TimeRecorder);
         % same frequency i the same column different rows different
         % recording times goes from low frequency to high frequency
         save(outputfile,'RecorderArray');
